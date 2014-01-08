@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Remote Camera</title>
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=10.0; user-scalable=1;"/>
+<link rel="apple-touch-icon" href="/icon.png" />
+<meta name="apple-touch-fullscreen" content="YES" />
+<style type="text/css" media="screen">@import "/iui/iui.css";</style>
+<script type="application/x-javascript" src="/iui/iui.js"></script>
+<script type="text/javascript">
+	iui.animOn = true;
+	
+function init()
+{
+	// page load
+	
+	microAjax("/list", function (res) 
+	{
+		var s = res.split("\r\n");
+		var o = "";
+		for (var i = 0; i < s.length - 1; i+=2)
+		{
+			o += '<li><a href="#cam' + s[i+1] + '">' + s[i] + '</a></li>';
+			o += '<li><a href="#scam' + s[i+1] + '">' + s[i] + ' (320x240)</a></li>';
+			
+			document.body.innerHTML +=
+			'<ul onload="x=640;y=480;q=50;s=false;LoadedPage(\'' + s[i + 1] + '\');" onunload="UnLoadedPage(\'' + s[i + 1] + '\');" title="' + s[i] + '" id="cam' + s[i + 1] + '"><img id="img' + s[i + 1] + '" onload="ImageLoaded();" /></ul>';
+			document.body.innerHTML +=
+			'<ul onload="x=320;y=240;q=20;s=true;LoadedPage(\'' + s[i + 1] + '\');" onunload="UnLoadedPage(\'' + s[i + 1] + '\');" title="' + s[i] + '" id="scam' + s[i + 1] + '"><img id="simg' + s[i + 1] + '" onload="ImageLoaded();" /></ul>';
+		}
+		$('home').innerHTML = o + '<li><a href="#settings">Settings</a></li>';
+	}
+	);
+}
+
+var currentPage = '';
+var q = 50;
+var x = 320;
+var y = 240;
+var s = false;
+var hq = false;
+var refresh = true;
+
+function refreshToggle()
+{
+	refresh = !refresh;
+}
+
+function toggleQuality()
+{
+	hq = !hq;
+}
+
+function LoadedPage(id)
+{
+	currentPage = id;
+	var img = s ? 'simg' : 'img';
+	$(img + currentPage).src = '/video/' + currentPage + "?rand=" + Math.random() + "&q=" + (hq ? 100 : q) + "&x=" + x + "&y=" + y;
+	$('r_buttona').style.display='inline';
+}
+
+
+function UnLoadedPage(id)
+{
+	$('r_buttona').style.display='none';
+	currentPage = -1;
+}
+
+function reload()
+{
+	if (currentPage != '')
+	{
+		$('r_button').innerHTML = '&nbsp;&nbsp;<img src="/iui/loading.gif" width=32 height=32 border=0 />';
+		var img = s ? 'simg' : 'img';
+		$(img + currentPage).src = '/video/' + currentPage + "?rand=" + Math.random() + "&q=" + (hq ? 100 : q) + "&x=" + x + "&y=" + y;
+	}
+}
+
+function ImageLoaded()
+{
+	$('r_button').innerHTML = 'Refresh';
+	if (!refresh)
+	{
+		return;
+	}
+	if (currentPage != -1)
+	{
+		var img = s ? 'simg' : 'img';
+		$(img + currentPage).src = '/video/' + currentPage + "?rand=" + Math.random() + "&q=" + (hq ? 100 : q) + "&x=" + x + "&y=" + y;
+	}
+}
+
+function $(o){return document.getElementById(o)};
+function microAjax(B,A){this.bindFunction=function(E,D){return function(){return E.apply(D,[D])}};this.stateChange=function(D){if(this.request.readyState==4){this.callbackFunction(this.request.responseText)}};this.getRequest=function(){if(window.ActiveXObject){return new ActiveXObject("Microsoft.XMLHTTP")}else{if(window.XMLHttpRequest){return new XMLHttpRequest()}}return false};this.postBody=(arguments[2]||"");this.callbackFunction=A;this.url=B;this.request=this.getRequest();if(this.request){var C=this.request;C.onreadystatechange=this.bindFunction(this.stateChange,this);if(this.postBody!==""){C.open("POST",B,true);C.setRequestHeader("Content-type","application/x-www-form-urlencoded");C.setRequestHeader("Connection","close")}else{C.open("GET",B,true)}C.send(this.postBody)}};
+</script>
+</head>
+
+<body>
+    <div class="toolbar">
+        <h1 id="pageTitle"></h1>
+        <a id="backButton" class="button" href="#"></a>
+        <a id="r_buttona" style="display: none;" class="button" href="javascript:reload();"><span id="r_button">Refresh</span></a>
+    </div>
+    
+    <ul id="home" title="Cameras" selected="true">
+		<li><div align="center">Loading...</center></li>
+		<!--
+        <li><a href="#artists">Artists</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="stats.php">Stats</a></li>
+        <li><a href="http://code.google.com/p/iui/" target="_self">About</a></li>
+        <li>Nothing</li>
+		-->
+    </ul>
+	<!--
+    <ul id="artists" title="Artists">
+        <li class="group">B</li>
+        <li><a href="#TheBeatles">The Beatles</a></li>
+        <li><a href="#BelleSebastian">Belle &amp; Sebastian</a></li>
+        <li class="group">C</li>
+        <li><a href="#CrowdedHouse">Crowded House</a></li>
+        <li class="group">J</li>
+        <li><a href="#JennyLewis">Jenny Lewis</a></li>
+        <li><a href="#JohnMayer">John Mayer</a></li>
+        <li class="group">Z</li>
+        <li><a href="#Zero7">Zero 7</a></li>
+    </ul>
+    <ul id="TheBeatles" title="The Beatles">
+        <li><a href="#songs">Abbey Road</a></li>
+        <li><a href="#songs">Help!</a></li>
+        <li><a href="#songs">Rubber Soul</a></li>
+        <li><a href="#songs">Sgt. Pepper's</a></li>
+        <li><a href="#songs">White Album</a></li>
+    </ul>
+    <ul id="BelleSebastian" title="Belle &amp; Sebastian">
+        <li><a href="#songs">Boy With The Arab Strap</a></li>
+        <li><a href="#songs">Dear Catastrophe Waitress</a></li>
+        <li><a href="#songs">The Life Pursuit</a></li>
+    </ul>
+    <ul id="CrowdedHouse" title="Crowded House">
+        <li><a href="#songs">Crowded House</a></li>
+        <li><a href="#songs">Temple of Low Men</a></li>
+        <li><a href="#songs">Time on Earth</a></li>
+        <li><a href="#songs">Together Alone</a></li>
+        <li><a href="#songs">Woodface</a></li>
+    </ul>
+    <ul id="JennyLewis" title="Jenny Lewis">
+        <li><a href="#songs">White Rabbit Fur Coat</a></li>
+    </ul>
+    <ul id="JohnMayer" title="John Mayer">
+        <li><a href="#songs">Continuum</a></li>
+        <li><a href="#songs">Heavier Things</a></li>
+        <li><a href="#songs">Room for Squares</a></li>
+    </ul>
+    <ul id="Zero7" title="Zero 7">
+        <li><a href="#songs">The Garden</a></li>
+        <li><a href="#songs">Simple Things</a></li>
+        <li><a href="#songs">When it Falls</a></li>
+    </ul>
+    <ul id="songs" title="Songs">
+        <li><a href="#player">Song 1</a></li>
+        <li><a href="#player">Song 2</a></li>
+        <li><a href="#player">Song 3</a></li>
+        <li><a href="#player">Song 4</a></li>
+        <li><a href="#player">Song 5</a></li>
+        <li><a href="#player">Song 6</a></li>
+        <li><a href="#player">Song 7</a></li>
+        <li><a href="#player">Song 8</a></li>
+        <li><a href="#player">Song 9</a></li>
+        <li><a href="#player">Song 10</a></li>
+        <li><a href="#player">Song 11</a></li>
+    </ul>
+    
+    <div id="player" class="panel" title="Now Playing">
+        <h2>If this weren't just a demo, you might be hearing a song...</h2>
+    </div>
+    
+    <form id="searchForm" class="dialog" action="search.php">
+        <fieldset>
+            <h1>Music Search</h1>
+            <a class="button leftButton" type="cancel">Cancel</a>
+            <a class="button blueButton" type="submit">Search</a>
+            
+            <label>Artist:</label>
+            <input id="artist" type="text" name="artist"/>
+            <label>Song:</label>
+            <input type="text" name="song"/>
+        </fieldset>
+    </form>
+	-->
+    <div id="settings" title="Settings" class="panel">
+        <h2>Camera Settings</h2>
+        <fieldset>
+            <div class="row">
+                <label>High-Quality Images</label>
+                <div class="toggle" onclick="toggleQuality();"><span class="thumb"></span><span class="toggleOn">ON</span><span class="toggleOff">OFF</span></div>
+            </div>
+            <div class="row">
+                <label>Automatically Refresh</label>
+                <div class="toggle" onclick="refreshToggle();" toggled="true"><span class="thumb"></span><span class="toggleOn">ON</span><span class="toggleOff">OFF</span></div>
+            </div>
+        </fieldset>
+        <!--
+        <h2>User</h2>
+        <fieldset>
+            <div class="row">
+                <label>Name</label>
+                <input type="text" name="userName" value="johnappleseed"/>
+            </div>
+            <div class="row">
+                <label>Password</label>
+                <input type="password" name="password" value="delicious"/>
+            </div>
+            <div class="row">
+                <label>Confirm</label>
+                <input type="password" name="password" value="delicious"/>
+            </div>
+        </fieldset>
+		-->
+    </div>
+	<script>init();</script>
+</body>
+</html>

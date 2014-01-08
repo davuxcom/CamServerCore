@@ -1,0 +1,80 @@
+<html>
+<head>
+<script type="text/javascript">
+
+var Cat = new Array();
+var CatData = new Array();
+
+function AddCat(cat, key, value)
+{
+$('settings').innerHTML += cat + " " + key + " " + value;
+
+	for (var i = 0; i < Cat.length; i++)
+	{
+		if (Cat[i] == cat)
+		{
+			// add kv
+			if (CatData[i] == null)
+			{
+				CatData[i] = new Array();
+			}
+			CatData[i][CatData[i].length] = key;
+			CatData[i][CatData[i].length] = value;
+			return;
+		}
+	}
+	// add new cat
+	
+	Cat[Cat.length] = cat;
+	AddCat(cat, key, value);
+}
+
+function Print()
+{
+	var o = "";
+	for (var i = 0; i < Cat.length; i++)
+	{
+		o += "<strong>" + Cat[i] + "</strong><br />";
+		for (var k = 0; k < CatData[i].length -1; k+=2)
+		{
+			o += "&nbsp;&nbsp;&nbsp;&nbsp;" + CatData[i][k] + "=" +CatData[i][k+1] + "<br />";
+		}
+	}
+
+	$('settings').innerHTML = o;
+}
+
+function init()
+{
+	microAjax("/settings", function (res) 
+	{
+		var s = res.split("\r\n");
+		var o = "";
+		for (var i = 0; i < s.length - 1; i++)
+		{
+			var kv = s[i].split("||");
+			var kvp = kv[0].split("|");
+			if (kvp.length > 1)
+			{
+				AddCat(kvp[0], kvp[1], kv[1]);
+			}
+			else
+			{
+				AddCat(kvp[0], 'Default', kv[1]);
+			}
+			
+		}
+		
+		Print();
+	});
+}
+
+function $(o){return document.getElementById(o)};
+function microAjax(B,A){this.bindFunction=function(E,D){return function(){return E.apply(D,[D])}};this.stateChange=function(D){if(this.request.readyState==4){this.callbackFunction(this.request.responseText)}};this.getRequest=function(){if(window.ActiveXObject){return new ActiveXObject("Microsoft.XMLHTTP")}else{if(window.XMLHttpRequest){return new XMLHttpRequest()}}return false};this.postBody=(arguments[2]||"");this.callbackFunction=A;this.url=B;this.request=this.getRequest();if(this.request){var C=this.request;C.onreadystatechange=this.bindFunction(this.stateChange,this);if(this.postBody!==""){C.open("POST",B,true);C.setRequestHeader("Content-type","application/x-www-form-urlencoded");C.setRequestHeader("Connection","close")}else{C.open("GET",B,true)}C.send(this.postBody)}};
+</script>
+</head>
+<body>
+<div id="settings">Loading Settings...</div>
+<script>init();</script>
+</body>
+</html>

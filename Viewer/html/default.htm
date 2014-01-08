@@ -1,0 +1,180 @@
+<html>
+<head>
+	<title>CamServer2 Remote Access</title>
+	<style type="text/css">
+	body
+	{
+		font-family: verdana;
+	}
+	.meter-wrap{
+    position: relative;
+	}
+
+	.meter-wrap, .meter-value, .meter-text {
+		/* The width and height of your image */
+		width: 0px; height: 10px;
+	}
+
+	.meter-wrap, .meter-value {
+		#background: #bdbdbd url(/meter-outline.png) top left no-repeat;
+	}
+				
+	.meter-text {
+		position: absolute;
+		top:0; left:0;
+
+		padding-top: 5px;
+					
+		color: #fff;
+		text-align: center;
+		width: 100%;
+	}
+	</style>
+	<script language="javascript">
+	
+	function init()
+	{
+		microAjax("/list", function (res) 
+		{
+			devices_ready();
+			var s = res.split("\n");
+			for (var i = 0; i < s.length - 1; i+=2)
+			{
+				device_added(s[i], s[i + 1]);
+			}
+		});
+	}
+	
+	var hasSelect = true;
+	var enabled = false;
+	var prog_running = false;
+	var current_id = "";
+	var prog_value = 0;
+	var prog_max = 0;
+	var loaded_flag = true;
+	var loaded_fail = 0;
+	
+	function devices_ready()
+	{
+		var dev = $('devices');
+		dev.options.length = 0;
+		dev.options[0] = new Option('Select a device', null, true, true);
+		dev.onchange = function()
+		{
+			if (hasSelect) 
+			{
+				dev.remove(0); 
+				hasSelect = false;
+			}
+			use_device(dev.options[dev.selectedIndex].value);
+		}
+	}
+	
+	function device_added(name, id)
+	{
+		var dev = $('devices');
+		dev.options[dev.options.length] = new Option(name, id, false, false);
+	}
+	
+	function use_device(id)
+	{
+		current_id = id;
+		if (!enabled)
+		{
+			enabled = true;
+			Update();
+		}
+	}
+	
+	function Update()
+	{
+		if (loaded_flag || loaded_fail > 10)
+		{
+			var img = $('img');
+			var quality = $('quality').options[$('quality').selectedIndex].value;
+			var scale = $('scale').options[$('scale').selectedIndex].value;
+			loaded_flag = false;
+			img.src = '/video/' + current_id + "?q=" + quality + "&s=" + scale + "&rand=" + Math.random();
+
+			var width = window.document.body.clientHeight;
+			var height = window.document.body.clientWidth;
+			//img.width = width;
+			$('mwrap').style.width = width;
+			prog_max = width;
+			
+			if (!prog_running) prog_watchdog();
+		}
+		else
+		{
+			loaded_fail++;
+		}
+		setTimeout('Update();',500);
+	}
+	
+	function prog_watchdog()
+	{
+		prog_running = true;
+		set_prog(prog_value + 10);
+		setTimeout('prog_watchdog();',100);
+	}
+	
+	function set_prog(val)
+	{
+		prog_value = val;
+		if (prog_value <= prog_max)
+		{
+			$('prog').style.background = 'blue';
+			$('prog').style.width = prog_value + 'px';
+			$('errtxt').innerText = '';
+		}
+		else
+		{
+		    $('prog').style.background = 'red';
+		    $('errtxt').innerText = 'This device is not responding.';
+		}
+	}
+	
+	function img_loaded()
+	{
+		loaded_flag = true;
+		set_prog(0);
+	}
+	
+	function $(o){return document.getElementById(o)};
+	function microAjax(B,A){this.bindFunction=function(E,D){return function(){return E.apply(D,[D])}};this.stateChange=function(D){if(this.request.readyState==4){this.callbackFunction(this.request.responseText)}};this.getRequest=function(){if(window.ActiveXObject){return new ActiveXObject("Microsoft.XMLHTTP")}else{if(window.XMLHttpRequest){return new XMLHttpRequest()}}return false};this.postBody=(arguments[2]||"");this.callbackFunction=A;this.url=B;this.request=this.getRequest();if(this.request){var C=this.request;C.onreadystatechange=this.bindFunction(this.stateChange,this);if(this.postBody!==""){C.open("POST",B,true);C.setRequestHeader("Content-type","application/x-www-form-urlencoded");C.setRequestHeader("Connection","close")}else{C.open("GET",B,true)}C.send(this.postBody)}};
+	
+	</script>
+</head>
+<body>
+	<span align="center">
+		<select id="devices">
+			<option>Loading Devices....
+		</select>
+		<select id="quality">
+			<option value="100">100% (Highest Quality)
+			<option value="80">80% (High Quality)
+			<option value="50">50% (Medium Quality)
+			<option value="50">30% (Low Quality)
+			<option value="5">5% (Lowest Quality)
+		</select>
+		<select id="scale">
+			<option value="100">100% (Highest Resolution)
+			<option value="80">80% (High Resolution)
+			<option value="50">50% (Medium Resolution)
+			<option value="50">30% (Low Resolution)
+			<option value="5">5% (Lowest Resolution)
+		</select>
+	</span>
+	<div id="mwrap" class="meter-wrap">
+		<div id="prog" class="meter-value" style="background-color: #0a0; width: 40%;">
+			<div id="" class="meter-text">
+				
+			</div>
+		</div>
+	</div>
+	<div align="center" id="errtxt"></div>
+	<img id="img" width="100%" border="0" onload="img_loaded();" /><br />
+
+</body>
+<script>init();</script>
+</html>

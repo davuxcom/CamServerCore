@@ -1,0 +1,78 @@
+<html>
+<head>
+<script language="javascript">
+
+var currentCam = -1;
+
+var isLoaded = false;
+var isLow = false;
+
+function init()
+{
+	// page load
+	
+	microAjax("/list", function (res) 
+	{
+		var s = res.split("\n");
+		var o = "";
+		for (var i = 0; i < s.length - 1; i+=2)
+		{
+			o += '<a href="javascript:view(\'' + s[i+1] + '\', false);">' + s[i] + '</a> - ';
+			o += '<a href="javascript:view(\'' + s[i+1] + '\', true);">Low Res</a> - ';
+			o += '<a href="/video/' + s[i+1] + '">Static Image</a><br />';
+		}
+		$('list').innerHTML = o;
+	}
+	);
+}
+
+function view(camID, low)
+{
+	isLow = low;
+	if (currentCam == -1)
+	{
+		currentCam = camID;
+		isLoaded = true;
+		Update();
+	}
+	else
+	{
+		currentCam = camID;
+		//$('img').src = '/favicon.ico';
+	}
+}
+
+function Load()
+{
+	isLoaded = true;
+}
+
+function Update()
+{
+	if (isLoaded)
+	{
+		if (isLow)
+		{
+			$('img').src = '/video/' + currentCam + "?q=25&x=320&y=240&rand=" + Math.random()
+		}
+		else
+		{
+			$('img').src = '/video/' + currentCam + "?rand=" + Math.random()
+		}
+	}
+	setTimeout('Update();',500);
+}
+
+function $(o){return document.getElementById(o)};
+function microAjax(B,A){this.bindFunction=function(E,D){return function(){return E.apply(D,[D])}};this.stateChange=function(D){if(this.request.readyState==4){this.callbackFunction(this.request.responseText)}};this.getRequest=function(){if(window.ActiveXObject){return new ActiveXObject("Microsoft.XMLHTTP")}else{if(window.XMLHttpRequest){return new XMLHttpRequest()}}return false};this.postBody=(arguments[2]||"");this.callbackFunction=A;this.url=B;this.request=this.getRequest();if(this.request){var C=this.request;C.onreadystatechange=this.bindFunction(this.stateChange,this);if(this.postBody!==""){C.open("POST",B,true);C.setRequestHeader("Content-type","application/x-www-form-urlencoded");C.setRequestHeader("Connection","close")}else{C.open("GET",B,true)}C.send(this.postBody)}};
+
+</script>
+</head>
+<body>
+<div id="other">Use the <a href="/iphone.htm">iPhone Console</a>.</div>
+<div id="other2">Use the <a href="/settings.htm">View Settings</a>.</div>
+<div id="list">Loading Cameras...</div>
+<img id="img" onload="Load()" style="display:hidden;" border="0" />
+</body>
+<script>init();</script>
+</html>
