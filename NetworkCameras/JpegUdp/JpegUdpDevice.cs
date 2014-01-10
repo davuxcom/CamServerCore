@@ -36,33 +36,41 @@ namespace NetworkCameras.JpegUdp
         {
             worker = new Thread(() =>
             {
-                var u = new UdpClient(new IPEndPoint(IPAddress.Any, Port));
-
-                while (worker == Thread.CurrentThread)
+                try
                 {
-                    IPEndPoint ip = null;
-                    var bytes = u.Receive(ref ip);
-                    Console.WriteLine(bytes.Length);
+                    var u = new UdpClient(new IPEndPoint(IPAddress.Any, Port));
 
-                    JpegBitmapDecoder decoder = null;
-                    BitmapSource bitmapSource = null;
-                    using (var stream = new MemoryStream(bytes))
+                    while (worker == Thread.CurrentThread)
                     {
-                        decoder = new JpegBitmapDecoder(stream,
-                                                        BitmapCreateOptions.PreservePixelFormat,
-                                                        BitmapCacheOption.OnLoad);
+                        IPEndPoint ip = null;
+                        var bytes = u.Receive(ref ip);
+                        Console.WriteLine(bytes.Length);
+
+                        JpegBitmapDecoder decoder = null;
+                        BitmapSource bitmapSource = null;
+                        using (var stream = new MemoryStream(bytes))
+                        {
+                            decoder = new JpegBitmapDecoder(stream,
+                                                            BitmapCreateOptions.PreservePixelFormat,
+                                                            BitmapCacheOption.OnLoad);
+                        }
+                        bitmapSource = decoder.Frames[0];
+                        bitmapSource.Freeze();
+
+
+                        TransformedBitmap myRotatedBitmapSource = new TransformedBitmap();
+                        myRotatedBitmapSource.BeginInit();
+                        myRotatedBitmapSource.Source = bitmapSource;
+                        myRotatedBitmapSource.Transform = new RotateTransform(90);
+                        myRotatedBitmapSource.EndInit();
+
+                        this.FrameArrived(myRotatedBitmapSource);
                     }
-                    bitmapSource = decoder.Frames[0];
-                    bitmapSource.Freeze();
-
-
-                    TransformedBitmap myRotatedBitmapSource = new TransformedBitmap();
-                    myRotatedBitmapSource.BeginInit();
-                    myRotatedBitmapSource.Source = bitmapSource;
-                    myRotatedBitmapSource.Transform = new RotateTransform(90);
-                    myRotatedBitmapSource.EndInit();
-
-                    this.FrameArrived(myRotatedBitmapSource);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("Worker crash: " + ex.Message);
+                    StartVideoInternal();
                 }
             });
             worker.Start();
