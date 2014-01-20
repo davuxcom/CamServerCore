@@ -86,6 +86,14 @@ namespace CamServerCore
                             { "Camera Version", "FI8918W" },
                         });
                     }
+                    else if (b.Name == "Mjpeg")
+                    {
+                        altBus.Create(new Dictionary<string, string> { 
+                            { "Url", "http://192.168.0.133:8080/videofeed" },
+                            { "Display Name", "Wall Slate" },
+                        });
+
+                    }
                     else if (b.Name == "JpegUdp")
                     {
                         altBus.Create(new Dictionary<string, string> { 

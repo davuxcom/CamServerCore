@@ -77,6 +77,8 @@
     <Compile Include="JpegUdp\JpegUdpBus.cs" />
     <Compile Include="JpegUdp\JpegUdpDevice.cs" />
     <Compile Include="MJpegDecoder.cs" />
+    <Compile Include="Mjpeg\MjpegBasic.cs" />
+    <Compile Include="Mjpeg\MjpegBasicDevice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
